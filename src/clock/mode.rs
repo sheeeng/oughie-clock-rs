@@ -1,28 +1,28 @@
 use super::{counter::Counter, time_zone::TimeZone};
 
 pub enum ClockMode {
+    Counter(Counter),
     Time {
         time_zone: TimeZone,
         date_format: String,
     },
-    Counter(Counter),
 }
 
 impl ClockMode {
     pub fn get_time(&self) -> (u32, u32, u32) {
         match self {
-            Self::Time { time_zone, .. } => time_zone.get_time(),
             Self::Counter(counter) => counter.get_time(),
+            Self::Time { time_zone, .. } => time_zone.get_time(),
         }
     }
 
     pub fn text(&self) -> String {
         match self {
+            Self::Counter(counter) => counter.text.into(),
             Self::Time {
                 time_zone,
                 date_format,
             } => time_zone.text(date_format),
-            Self::Counter(counter) => counter.text.into(),
         }
     }
 }
