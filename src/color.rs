@@ -31,10 +31,10 @@ pub enum Color {
 }
 
 impl Color {
-    pub const RESET: &'static str = esc!(0);
-    pub const BOLD: &'static str = esc!(1);
+    pub const RESET: &str = esc!(0);
+    pub const BOLD: &str = esc!(1);
 
-    pub const fn foreground(&self) -> &'static str {
+    pub const fn foreground(&self) -> &str {
         match self {
             Self::Black => esc!(30),
             Self::Red => esc!(31),
@@ -54,7 +54,8 @@ impl Color {
             Self::BrightWhite => esc!(97),
         }
     }
-    pub const fn background(&self) -> &'static str {
+
+    pub const fn background(&self) -> &str {
         match self {
             Self::Black => esc!(40),
             Self::Red => esc!(41),

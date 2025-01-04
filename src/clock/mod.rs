@@ -27,8 +27,8 @@ impl Clock {
     const WIDTH_NO_SECONDS: usize = 32;
     const HEIGHT: usize = 7;
     const SUFFIX_LEN: usize = 5;
-    const AM_SUFFIX: &'static str = " [AM]";
-    const PM_SUFFIX: &'static str = " [PM]";
+    const AM_SUFFIX: &str = " [AM]";
+    const PM_SUFFIX: &str = " [PM]";
 
     pub fn new(config: Config, mode: ClockMode) -> io::Result<Self> {
         Ok(Self {
@@ -47,9 +47,7 @@ impl Clock {
     }
 
     pub fn update_position(&mut self, width: u16, height: u16) {
-        let text = self.mode.text();
-
-        let text_len = text.len() + if self.use_12h { Self::SUFFIX_LEN } else { 0 };
+        let text_len = self.mode.text().len() + if self.use_12h { Self::SUFFIX_LEN } else { 0 };
 
         let half_width = self.width() / 2;
 

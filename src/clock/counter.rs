@@ -21,8 +21,8 @@ pub enum CounterType {
 impl Counter {
     pub const MAX_TIMER_HOURS: u64 = 24;
     pub const MAX_TIMER_SECONDS: u64 = Self::MAX_TIMER_HOURS * 3600;
-    const TEXT: &'static str = "p: Toggle Pause, r: Restart";
-    const TEXT_PAUSED: &'static str = "p: Toggle Pause, r: Restart [Paused]";
+    const TEXT: &str = "p: Toggle Pause, r: Restart";
+    const TEXT_PAUSED: &str = "p: Toggle Pause, r: Restart [Paused]";
 
     pub fn new(ty: CounterType) -> Self {
         Self {
