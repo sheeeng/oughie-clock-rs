@@ -15,12 +15,11 @@ use crate::{error::Error, state::State};
 
 fn main() {
     if let Err(err) = run() {
-        println!("{}Error:{} {err}", esc!("1;3;31"), esc!("0;1"));
+        println!("{}Error:{} {err}", esc!("1;31"), esc!("0;1"));
         process::exit(1);
     }
 }
 
 fn run() -> Result<(), Error> {
-    State::new()?.run()?;
-    Ok(())
+    State::new()?.run().map_err(Error::Io)
 }

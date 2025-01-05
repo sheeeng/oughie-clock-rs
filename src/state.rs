@@ -49,8 +49,8 @@ impl State {
 
         let interval = config.general.interval;
 
-        let (width, height) = terminal::size()?;
-        let mut clock = Clock::new(config, clock_mode)?;
+        let (width, height) = terminal::size().map_err(Error::Io)?;
+        let mut clock = Clock::new(config, clock_mode).map_err(Error::Io)?;
         clock.update_position(width, height);
 
         Ok(Self {
@@ -132,8 +132,9 @@ impl State {
     pub fn exit() {
         let mut stdout = io::stdout();
 
-        execute!(stdout, LeaveAlternateScreen, Show)
-            .expect("Error: Could not leave alternate screen.");
+        execute!(stdout, LeaveAlternateScreen, Show).expect(
+            "Error: Could not leave alternate screen. You might have to restart your terminal.",
+        );
         terminal::disable_raw_mode()
             .expect("Error: Could not disable raw mode. You might have to restart your terminal.");
     }

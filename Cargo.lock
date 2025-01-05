@@ -155,14 +155,13 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "clock-rs"
-version = "0.1.211"
+version = "0.1.212"
 dependencies = [
  "chrono",
  "clap",
  "crossterm",
  "dirs",
  "serde",
- "thiserror",
  "toml",
 ]
 

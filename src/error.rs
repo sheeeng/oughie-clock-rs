@@ -1,24 +1,39 @@
-use std::io;
-
-use thiserror::Error;
+use std::{fmt, io};
 
 use crate::{clock::counter::Counter, color::Color};
 
-#[derive(Debug, Error)]
 pub enum Error {
-    #[error(
-        "The timer duration must be shorter than {} hours:{} {0}s >= {}s",
-        Counter::MAX_TIMER_HOURS,
-        Color::RESET,
-        Counter::MAX_TIMER_SECONDS
-    )]
     TimerDurationTooLong(u64),
-    #[error("Configuration path is invalid unicode:{} `{0}`", Color::RESET)]
     PathIsNonUnicode(String),
-    #[error("Failed to read file `{0}`:{}\n{1}", Color::RESET)]
     FailedToReadFile(String, String),
-    #[error("Failed to parse configuration file `{0}`:{}\n{1}", Color::RESET)]
     InvalidToml(String, String),
-    #[error("IO Error:{}\n{0}", Color::RESET)]
-    Io(#[from] io::Error),
+    Io(io::Error),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::TimerDurationTooLong(duration) => write!(
+                f,
+                "The timer duration must be shorter than {} hours:{} {duration}s >= {}s",
+                Counter::MAX_TIMER_HOURS,
+                Color::RESET,
+                Counter::MAX_TIMER_SECONDS
+            ),
+            Self::PathIsNonUnicode(path) => write!(
+                f,
+                "Configuration path is invalid unicode:{} `{path}`",
+                Color::RESET
+            ),
+            Self::FailedToReadFile(path, err) => {
+                write!(f, "Failed to read file `{path}`:{}\n{err}", Color::RESET)
+            }
+            Self::InvalidToml(path, err) => write!(
+                f,
+                "Failed to parse configuration file `{path}`:{}\n{err}",
+                Color::RESET
+            ),
+            Self::Io(err) => write!(f, "IO Error:{}\n{err}", Color::RESET),
+        }
+    }
 }
