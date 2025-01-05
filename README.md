@@ -12,6 +12,8 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 
 - [Introduction](#introduction)
 - [Installation](#installation)
+  - [Using Cargo](#using-cargo)
+  - [Installing from source](#installing-from-source)
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Fields](#fields)
@@ -21,15 +23,32 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 
 ## Introduction
 
-`clock-rs` is a terminal-based clock written in Rust, designed to be a new alternative to [tty-clock](https://github.com/xorg62/tty-clock). It offers several improvements, which include:
+`clock-rs` is a cross-platform, terminal-based clock written in Rust, designed to be a new alternative to [tty-clock](https://github.com/xorg62/tty-clock). It offers several improvements, which include:
 - The use of a single configuration file to manage its settings, with the ability to overwrite them through the command line,
 - Many additional features such as a timer and a stopwatch,
 - And greater flexibility as well as better user experience!
 
 ## Installation
 
-To install `clock-rs` globally using Cargo, simply run `$ cargo install clock-rs`.
+### Using Cargo
+
+To install `clock-rs` globally using Cargo, simply run the following command:
+
+```
+$ cargo install clock-rs
+```
+
 You can then run the executable via the `clock-rs` command.
+
+### Installing from source
+
+If you prefer installing `clock-rs` from source, follow these steps:
+
+1. Download the repository from the [releases](https://github.com/Oughie/clock-rs/releases/) page clone it using `$ git clone https://github.com/Oughie/clock-rs`.
+
+2. Depending on your platform, extract the archive and navigate into its directory.
+
+3. Inside the directory, run `$ cargo build --release` to build the application manually. This will place the executable inside the `clock-rs/target/release` directory. However, if you want to install it globally instead, run `$ cargo install --path .`.
 
 ## Usage
 
