@@ -14,6 +14,7 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 - [Installation](#installation)
   - [Using Cargo](#using-cargo)
   - [Installing from source](#installing-from-source)
+  - [Installing using a package manager](#installing-using-a-package-manager)
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Fields](#fields)
@@ -50,6 +51,14 @@ If you prefer installing `clock-rs` from source, follow these steps:
 2. Depending on your platform, extract the archive and navigate into its directory.
 
 3. Inside the directory, run `$ cargo build --release` to build the application manually. This will place the executable inside the `clock-rs/target/release` directory. However, if you want to install it globally instead, run `$ cargo install --path .`.
+
+### Installing using a package manager
+
+On NetBSD, a package is available from the official repositories. To install it, simply run:
+
+```
+# pkgin install clock-rs
+```
 
 ## Usage
 
