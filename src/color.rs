@@ -31,8 +31,8 @@ pub enum Color {
 }
 
 impl Color {
-    pub const RESET: &str = esc!(0);
-    pub const BOLD: &str = esc!(1);
+    pub const RESET: &'static str = esc!(0);
+    pub const BOLD: &'static str = esc!(1);
 
     pub const fn foreground(&self) -> &str {
         match self {

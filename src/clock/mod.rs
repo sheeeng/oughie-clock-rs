@@ -27,8 +27,8 @@ impl Clock {
     const WIDTH_NO_SECONDS: usize = 32;
     const HEIGHT: usize = 7;
     const SUFFIX_LEN: usize = 5;
-    const AM_SUFFIX: &str = " [AM]";
-    const PM_SUFFIX: &str = " [PM]";
+    const AM_SUFFIX: &'static str = " [AM]";
+    const PM_SUFFIX: &'static str = " [PM]";
 
     pub fn new(config: Config, mode: ClockMode) -> io::Result<Self> {
         Ok(Self {
