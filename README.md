@@ -54,14 +54,6 @@ If you prefer installing `clock-rs` from source, follow these steps:
 
 ### Installing using a package manager
 
-#### NetBSD
-
-A package is available from the official repositories. To install it, simply run:
-
-```
-# pkgin install clock-rs
-```
-
 #### Arch Linux
 
 A package is available from the [AUR](https://aur.archlinux.org/packages/clock-rs-git) (Arch User Repository). To install it, use your preferred AUR manager:
@@ -74,6 +66,14 @@ or manually clone from the AUR:
 
 ```
 $ git clone https://aur.archlinux.org/clock-rs-git.git && cd clock-rs-git && makepkg -si
+```
+
+#### NetBSD
+
+A package is available from the official repositories. To install it, simply run:
+
+```
+# pkgin install clock-rs
 ```
 
 ## Usage
