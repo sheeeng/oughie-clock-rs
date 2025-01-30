@@ -46,7 +46,7 @@ You can then run the executable via the `clock-rs` command.
 
 If you prefer installing `clock-rs` from source, follow these steps:
 
-1. Download the repository from the [releases](https://github.com/Oughie/clock-rs/releases/) page clone it using `$ git clone https://github.com/Oughie/clock-rs`.
+1. Download the repository from the [releases](https://github.com/Oughie/clock-rs/releases/) page or clone it using `$ git clone https://github.com/Oughie/clock-rs`.
 
 2. Depending on your platform, extract the archive and navigate into its directory.
 
