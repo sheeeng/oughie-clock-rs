@@ -13,8 +13,8 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 - [Introduction](#introduction)
 - [Installation](#installation)
   - [Using Cargo](#using-cargo)
-  - [Installing from source](#installing-from-source)
   - [Installing using a package manager](#installing-using-a-package-manager)
+  - [Installing from source](#installing-from-source)
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Fields](#fields)
@@ -42,16 +42,6 @@ $ cargo install clock-rs
 
 You can then run the executable via the `clock-rs` command.
 
-### Installing from source
-
-If you prefer installing `clock-rs` from source, follow these steps:
-
-1. Download the repository from the [releases](https://github.com/Oughie/clock-rs/releases/) page or clone it using `$ git clone https://github.com/Oughie/clock-rs`.
-
-2. Depending on your platform, extract the archive and navigate into its directory.
-
-3. Inside the directory, run `$ cargo build --release` to build the application manually. This will place the executable inside the `clock-rs/target/release` directory. However, if you want to install it globally instead, run `$ cargo install --path .`.
-
 ### Installing using a package manager
 
 #### Arch Linux
@@ -75,6 +65,44 @@ A package is available from the official repositories. To install it, simply run
 ```
 # pkgin install clock-rs
 ```
+
+#### NixOS
+
+`clock-rs` is available in the [Nixpkgs](https://search.nixos.org/packages?channel=unstable&show=clock-rs&from=0&size=50&sort=relevance&type=packages&query=clock-rs) repository. To install it on NixOS, use the following command:
+
+```
+$ nix-env -iA nixos.clock-rs
+```
+
+If you use Nix on a different operating system, use either of the following commands:
+
+```sh
+$ nix-env -iA nixpkgs.clock-rs # With flakes 
+$ nix profile install nixpkgs#clock-rs # Without flakes
+```
+
+> [!CAUTION]
+> Using `nix-env` is generally unrecommended, since it requires you to manually manage installed packages.  
+> Consider using `$ nix-shell -p clock-rs` to make the application temporarily available instead.
+
+You could also add the following to your `configuration.nix`:
+
+```nix
+environment.systemPackages = with pkgs; [
+    pkgs.clock-rs
+    # ...
+];
+```
+
+### Installing from source
+
+If you prefer installing `clock-rs` from source, follow these steps:
+
+1. Download the repository from the [releases](https://github.com/Oughie/clock-rs/releases/) page or clone it using `$ git clone https://github.com/Oughie/clock-rs`.
+
+2. Depending on your platform, extract the archive and navigate into its directory.
+
+3. Inside the directory, run `$ cargo build --release` to build the application manually. This will place the executable inside the `clock-rs/target/release` directory. However, if you want to install it globally instead, run `$ cargo install --path .`.
 
 ## Usage
 
