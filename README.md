@@ -140,7 +140,7 @@ Options:
   -h, --help  Print help
 ```
 
-To exit the application, press either `Escape`, `q`, or `Ctrl-C`.
+To exit the application, press either <kbd>Escape</kbd>, <kbd>q</kbd>, or <kbd>Ctrl + C</kbd>.
 
 > [!NOTE]
 > If no command is specified, the `clock` command is used by default.  
