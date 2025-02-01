@@ -82,8 +82,7 @@ $ nix profile install nixpkgs#clock-rs # Without flakes
 ```
 
 > [!CAUTION]
-> Using `nix-env` is generally unrecommended, since it requires you to manually manage installed packages.  
-> Consider using `$ nix-shell -p clock-rs` to make the application temporarily available instead.
+> Using `nix-env` is generally unrecommended, since it requires you to manually manage installed packages. Consider using `$ nix-shell -p clock-rs` to make the application temporarily available instead.
 
 You could also add the following to your `configuration.nix`:
 
