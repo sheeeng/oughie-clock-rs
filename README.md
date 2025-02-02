@@ -88,7 +88,7 @@ You could also add the following to your `configuration.nix`:
 
 ```nix
 environment.systemPackages = with pkgs; [
-    pkgs.clock-rs
+    clock-rs
     # ...
 ];
 ```
