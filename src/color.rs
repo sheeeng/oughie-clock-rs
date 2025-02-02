@@ -3,8 +3,8 @@ use serde::Deserialize;
 
 #[macro_export]
 macro_rules! esc {
-    ($n:tt) => {
-        concat!("\x1B[", $n, "m")
+    ($code:tt) => {
+        concat!("\x1B[", $code, "m")
     };
 }
 

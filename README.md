@@ -13,8 +13,8 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 - [Introduction](#introduction)
 - [Installation](#installation)
   - [Using Cargo](#using-cargo)
-  - [Installing using a package manager](#installing-using-a-package-manager)
-  - [Installing from source](#installing-from-source)
+  - [Using a package manager](#using-a-package-manager)
+  - [Building from source](#building-from-source)
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Fields](#fields)
@@ -42,7 +42,7 @@ $ cargo install clock-rs
 
 You can then run the executable via the `clock-rs` command.
 
-### Installing using a package manager
+### Using a package manager
 
 #### Arch Linux
 
@@ -77,8 +77,8 @@ $ nix-env -iA nixos.clock-rs
 If you use Nix on a different operating system, use either of the following commands:
 
 ```sh
-$ nix-env -iA nixpkgs.clock-rs # With flakes 
-$ nix profile install nixpkgs#clock-rs # Without flakes
+$ nix-env -iA nixpkgs.clock-rs # Without flakes 
+$ nix profile install nixpkgs#clock-rs # With flakes
 ```
 
 > [!CAUTION]
@@ -93,7 +93,7 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
-### Installing from source
+### Building from source
 
 If you prefer installing `clock-rs` from source, follow these steps:
 
@@ -140,7 +140,8 @@ Options:
   -h, --help  Print help
 ```
 
-To exit the application, press either <kbd>Escape</kbd>, <kbd>q</kbd>, or <kbd>Ctrl + C</kbd>.
+Press <kbd>P</kbd> to toggle the pause on the timer or stopwatch, and <kbd>R</kbd> to restart.  
+To exit the application, press either <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
 
 > [!NOTE]
 > If no command is specified, the `clock` command is used by default.  

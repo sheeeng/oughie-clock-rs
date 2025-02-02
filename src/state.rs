@@ -72,7 +72,7 @@ impl State {
                 match event::read()? {
                     Event::Key(key_event) => match key_event {
                         KeyEvent {
-                            code: KeyCode::Esc | KeyCode::Char('q'),
+                            code: KeyCode::Esc | KeyCode::Char('Q' | 'q'),
                             modifiers: KeyModifiers::NONE,
                             ..
                         }
@@ -82,20 +82,20 @@ impl State {
                             ..
                         } => break Ok(()),
                         KeyEvent {
-                            code,
+                            code: KeyCode::Char(character @ ('P' | 'p' | 'R' | 'r')),
                             kind: KeyEventKind::Press,
+                            modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
                             ..
                         } => {
-                            if matches!(code, KeyCode::Char('p') | KeyCode::Char('r')) {
-                                if let ClockMode::Counter(counter) = &mut self.clock.mode {
-                                    if code == KeyCode::Char('p') {
-                                        counter.toggle_pause();
-                                    } else {
-                                        counter.restart();
-                                    }
-                                    let (width, height) = terminal::size()?;
-                                    self.clock.update_position(width, height);
+                            if let ClockMode::Counter(counter) = &mut self.clock.mode {
+                                if character == 'P' || character == 'p' {
+                                    counter.toggle_pause();
+                                } else {
+                                    counter.restart();
                                 }
+
+                                let (width, height) = terminal::size()?;
+                                self.clock.update_position(width, height);
                                 execute!(stdout, Clear(ClearType::All))?;
                             }
                         }
