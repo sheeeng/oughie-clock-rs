@@ -1,21 +1,13 @@
 use crate::{color::Color, config::Config, position::Position};
 
 use clap::{
-    builder::styling::{AnsiColor, Effects, Styles},
+    builder::styling::{AnsiColor, Styles},
     Parser, Subcommand,
 };
 use serde::Deserialize;
 
-fn styles() -> Styles {
-    Styles::styled()
-        .header(AnsiColor::Green.on_default() | Effects::BOLD | Effects::UNDERLINE)
-        .usage(AnsiColor::Green.on_default() | Effects::BOLD | Effects::UNDERLINE)
-        .literal(AnsiColor::Blue.on_default() | Effects::BOLD)
-        .placeholder(AnsiColor::Yellow.on_default() | Effects::ITALIC)
-}
-
 #[derive(Parser)]
-#[clap(version = "v0.1.214, (C) 2024 Oughie", hide_possible_values = true, styles = styles())]
+#[clap(version = "v0.1.215, (C) 2024 Oughie", hide_possible_values = true, styles = Self::STYLES)]
 pub struct Args {
     #[clap(subcommand)]
     pub mode: Option<Mode>,
@@ -49,6 +41,14 @@ pub struct Args {
     #[doc = "Use bold text"]
     #[clap(long, short)]
     pub bold: bool,
+}
+
+impl Args {
+    const STYLES: Styles = Styles::styled()
+        .header(AnsiColor::Green.on_default().bold().underline())
+        .usage(AnsiColor::Green.on_default().bold().underline())
+        .literal(AnsiColor::Blue.on_default().bold())
+        .placeholder(AnsiColor::Yellow.on_default().italic());
 }
 
 #[derive(Clone, Subcommand, Deserialize)]
