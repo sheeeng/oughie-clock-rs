@@ -93,6 +93,35 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
+If you use Home-Manager to configure your dotfiles, you can use the following to setup `clock-rs` declaratively:
+
+```nix
+programs.clock-rs = {
+  enable = true;
+
+  settings = {
+    general = {
+      color = "magenta";
+      interval = 250;
+      blink = true;
+      bold = true;
+    };
+
+    position = {
+      horizontal = "center";
+      vertical = "center";
+    };
+
+    date = {
+      fmt = "%A, %B %d, %Y";
+      use_12h = true;
+      utc = true;
+      hide_seconds = true;
+    };
+  };
+};
+```
+
 ### Building from source
 
 If you prefer installing `clock-rs` from source, follow these steps:
@@ -192,8 +221,8 @@ blink = true
 bold = true
 
 [position]
-horizontal = "start"
-vertical = "end"
+horizontal = "center"
+vertical = "center"
 
 [date]
 fmt = "%A, %B %d, %Y"
