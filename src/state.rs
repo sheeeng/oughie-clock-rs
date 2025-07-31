@@ -36,11 +36,31 @@ impl State {
                 date_format: config.date.fmt.clone(),
             },
             Some(Mode::Timer(args)) => {
-                if args.secs >= Counter::MAX_TIMER_SECONDS {
-                    return Err(Error::TimerDurationTooLong(args.secs));
-                }
+                let total_seconds =
+                    if matches!((args.seconds, args.minutes, args.hours), (None, None, None)) {
+                        Counter::DEFAULT_TIMER_DURATION
+                    } else {
+                        let seconds = args.seconds.unwrap_or(0);
+                        let minutes = args.minutes.unwrap_or(0);
+                        let hours = args.hours.unwrap_or(0);
+
+                        if seconds >= 60 {
+                            return Err(Error::TooManySeconds(seconds));
+                        }
+
+                        if minutes >= 60 {
+                            return Err(Error::TooManyMinutes(minutes));
+                        }
+
+                        if hours >= 100 {
+                            return Err(Error::TooManyHours(hours));
+                        }
+
+                        seconds + 60 * minutes + 3600 * hours
+                    };
+
                 ClockMode::Counter(Counter::new(CounterType::Timer {
-                    duration: Duration::from_secs(args.secs),
+                    duration: Duration::from_secs(total_seconds),
                     kill: args.kill,
                 }))
             }

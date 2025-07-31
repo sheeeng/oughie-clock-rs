@@ -73,23 +73,28 @@ impl Config {
                 _ => Ok(Some(path)),
             },
             Err(VarError::NotUnicode(s)) => {
-                Err(Error::PathIsNonUnicode(s.to_string_lossy().to_string()))
+                Err(Error::NonUnicodePath(s.to_string_lossy().to_string()))
             }
+
             Err(VarError::NotPresent) => match dirs::config_local_dir() {
-                Some(dir) => match dir.join("clock-rs/conf.toml").to_str() {
+                Some(dir) => match dir.join("clock-rs").join("conf.toml").to_str() {
                     Some(path) => match Path::new(path).exists() {
                         true => Ok(Some(path.to_string())),
                         false => Ok(None),
                     },
-                    None => Err(Error::PathIsNonUnicode(dir.to_string_lossy().to_string())),
+                    None => Err(Error::NonUnicodePath(dir.to_string_lossy().to_string())),
                 },
                 None => Ok(None),
             },
         }? {
-            let config_str = fs::read_to_string(&file_path)
-                .map_err(|err| Error::FailedToReadFile(file_path.clone(), err.to_string()))?;
-            toml::from_str(&config_str)
-                .map_err(|err| Error::InvalidToml(file_path, err.to_string()))
+            let config_str = fs::read_to_string(&file_path).map_err(|err| Error::ReadFile {
+                path: file_path.clone(),
+                err: err.to_string(),
+            })?;
+            toml::from_str(&config_str).map_err(|err| Error::ParseToml {
+                path: file_path,
+                err: err.to_string(),
+            })
         } else {
             Ok(Config::default())
         }

@@ -26,7 +26,7 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 
 `clock-rs` is a terminal-based clock written in Rust, designed to be a new alternative to [tty-clock](https://github.com/xorg62/tty-clock).  
 It supports all major platforms and offers several improvements, which include:
-- The use of a single configuration file to manage its settings, with the ability to overwrite them through the command line,
+- The use of a single configuration file to manage its settings, with the ability to override them through the command line,
 - Many additional features such as a timer and a stopwatch,
 - And greater flexibility as well as better user experience!
 
@@ -93,7 +93,7 @@ environment.systemPackages = with pkgs; [
 ];
 ```
 
-If you use Home-Manager to configure your dotfiles, you can use the following to setup `clock-rs` declaratively:
+If you use Home-Manager to configure your dotfiles, you can use the following to set up `clock-rs` declaratively:
 
 ```nix
 programs.clock-rs = {
@@ -159,18 +159,29 @@ Options:
 ```
 
 ```
-Usage: clock-rs timer [OPTIONS] <SECS>
+Create a timer
 
-Arguments:
-  <SECS>  Specify the timer duration in seconds
+Usage: clock-rs timer [OPTIONS]
 
 Options:
-  -k, --kill  Terminate the application when the timer finishes
+  -S, --seconds <SECONDS>  Add seconds to the timer
+  -M, --minutes <MINUTES>  Add minutes to the timer
+  -H, --hours <HOURS>      Add hours to the timer
+  -k, --kill               Terminate the application when the timer finishes
+  -h, --help               Print help
+```
+
+```
+Start a stopwatch
+
+Usage: clock-rs stopwatch
+
+Options:
   -h, --help  Print help
 ```
 
 Press <kbd>P</kbd> to toggle the pause on the timer or stopwatch, and <kbd>R</kbd> to restart.  
-To exit the application, press either <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
+To exit the application, press <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
 
 > [!NOTE]
 > If no command is specified, the `clock` command is used by default.  
@@ -190,7 +201,7 @@ By default, the configuration file is named `conf.toml` and is stored in the OS 
 You can change this path by setting the `CONF_PATH` environment variable.  
 If you wish to run the application without automatically using the existing `conf.toml` file, you can set `CONF_PATH` to `None`.  
 
-Any argument passed in the command line will overwrite the settings inside the `conf.toml` file.
+Any argument passed in the command line will override the settings inside the `conf.toml` file.
 
 ### Fields
 

@@ -63,8 +63,15 @@ pub enum Mode {
 
 #[derive(clap::Args, Clone, Deserialize)]
 pub struct TimerArgs {
-    #[doc = "Specify the timer duration in seconds"]
-    pub secs: u64,
+    #[doc = "Add seconds to the timer"]
+    #[clap(long, short = 'S')]
+    pub seconds: Option<u64>,
+    #[doc = "Add minutes to the timer"]
+    #[clap(long, short = 'M')]
+    pub minutes: Option<u64>,
+    #[doc = "Add hours to the timer"]
+    #[clap(long, short = 'H')]
+    pub hours: Option<u64>,
     #[doc = "Terminate the application when the timer finishes"]
     #[clap(long, short)]
     pub kill: bool,

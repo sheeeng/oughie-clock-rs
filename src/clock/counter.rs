@@ -19,8 +19,7 @@ pub enum CounterType {
 }
 
 impl Counter {
-    pub const MAX_TIMER_HOURS: u64 = 24;
-    pub const MAX_TIMER_SECONDS: u64 = Self::MAX_TIMER_HOURS * 3600;
+    pub const DEFAULT_TIMER_DURATION: u64 = 5 * 60;
     const TEXT: &'static str = "P: Toggle Pause, R: Restart";
     const TEXT_PAUSED: &'static str = "P: Toggle Pause, R: Restart [Paused]";
 
@@ -52,6 +51,7 @@ impl Counter {
     pub fn restart(&mut self) {
         self.start = Instant::now();
         self.last_pause = None;
+
         if self.paused {
             self.toggle_pause();
         }
