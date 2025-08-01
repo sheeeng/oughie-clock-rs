@@ -153,10 +153,10 @@ impl State {
         let mut stdout = io::stdout();
 
         execute!(stdout, LeaveAlternateScreen, Show).expect(
-            "Error: Could not leave alternate screen. You might have to restart your terminal.",
+            "error: failed to leave alternate screen, you might have to restart your terminal",
         );
         terminal::disable_raw_mode()
-            .expect("Error: Could not disable raw mode. You might have to restart your terminal.");
+            .expect("error: failed to disable raw mode, you might have to restart your terminal");
     }
 }
 

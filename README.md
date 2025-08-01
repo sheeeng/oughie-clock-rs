@@ -139,7 +139,7 @@ Usage: clock-rs [OPTIONS] [COMMAND]
 
 Commands:
   clock      Display the current time (default)
-  timer      Create a timer
+  timer      Create a timer (5 minutes if no time is specified)
   stopwatch  Start a stopwatch
   help       Print this message or the help of the given subcommand(s)
 
@@ -159,7 +159,7 @@ Options:
 ```
 
 ```
-Create a timer
+Create a timer (5 minutes if no time is specified)
 
 Usage: clock-rs timer [OPTIONS]
 
@@ -207,18 +207,18 @@ Any argument passed in the command line will override the settings inside the `c
 
 Here's a list of the available fields inside the `conf.toml` file.
 
-| Field                     | Description                                | Possible values                                                                                                                     | Default      |
-| ------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `general.color`           | Specify the color of the clock             | `"black"`, `"red"`, `"green"`, `"yellow"`, `"blue"`, `"magenta"`, `"cyan"`, or `"white"`. Optionally, prefix them with `"bright-"`. | `"white"`    |
-| `general.interval`        | Set the polling interval in milliseconds   | An unsigned integer, e.g. `250`.                                                                                                    | `200`        |
-| `general.blink`           | Set the colon to blink                     | `true` or `false`.                                                                                                                  | `false`      |
-| `general.bold`            | Use bold text                              | `true` or `false`.                                                                                                                  | `false`      |
-| `position.horizontal`     | Set the position along the horizontal axis | `"start"`, `"center"`, or `"end"`.                                                                                                  | `"center"`   |
-| `position.vertical`       | Set the position along the vertical axis   | `"start"`, `"center"`, or `"end"`.                                                                                                  | `"center"`   |
-| `date.fmt`                | Specify the date format                    | A string, e.g. `"%A, %B %d, %Y"`.                                                                                                   | `"%d-%m-%Y"` |
-| `date.use_12h`            | Use the 12h format                         | `true` or `false`.                                                                                                                  | `false`      |
-| `date.utc`                | Use UTC time                               | `true` or `false`.                                                                                                                  | `false`      |
-| `date.hide_seconds`       | Do not show seconds                        | `true` or `false`.                                                                                                                  | `false`      |
+| Field                     | Description                                | Possible values                    | Default      |
+| ------------------------- | ------------------------------------------ | ---------------------------------- | ------------ | 
+| `general.color`           | Specify the color of the clock             | `"black"`, `"red"`, `"green"`, `"yellow"`, `"blue"`, `"magenta"`, `"cyan"`, or `"white"`. Optionally, prefix them with `"bright-"` or use a hex color code in the form of `"#rrggbb"` | `"white"`    |
+| `general.interval`        | Set the polling interval in milliseconds   | An unsigned integer, e.g. `250`.   | `200`        |
+| `general.blink`           | Set the colon to blink                     | `true` or `false`.                 | `false`      |
+| `general.bold`            | Use bold text                              | `true` or `false`.                 | `false`      |
+| `position.horizontal`     | Set the position along the horizontal axis | `"start"`, `"center"`, or `"end"`. | `"center"`   |
+| `position.vertical`       | Set the position along the vertical axis   | `"start"`, `"center"`, or `"end"`. | `"center"`   |
+| `date.fmt`                | Specify the date format                    | A string, e.g. `"%A, %B %d, %Y"`.  | `"%d-%m-%Y"` |
+| `date.use_12h`            | Use the 12h format                         | `true` or `false`.                 | `false`      |
+| `date.utc`                | Use UTC time                               | `true` or `false`.                 | `false`      |
+| `date.hide_seconds`       | Do not show seconds                        | `true` or `false`.                 | `false`      |
 
 ### Example
 

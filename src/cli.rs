@@ -1,13 +1,13 @@
-use crate::{color::Color, config::Config, position::Position};
-
 use clap::{
     builder::styling::{AnsiColor, Styles},
     Parser, Subcommand,
 };
 use serde::Deserialize;
 
+use crate::{color::Color, config::Config, position::Position};
+
 #[derive(Parser)]
-#[clap(version = "v0.1.215, (C) 2024 Oughie", hide_possible_values = true, styles = Self::STYLES)]
+#[clap(version = "v0.1.216, (C) 2024 Oughie", hide_possible_values = true, styles = Self::STYLES)]
 pub struct Args {
     #[clap(subcommand)]
     pub mode: Option<Mode>,
@@ -55,7 +55,7 @@ impl Args {
 pub enum Mode {
     #[doc = "Display the current time (default)"]
     Clock,
-    #[doc = "Create a timer"]
+    #[doc = "Create a timer (5 minutes if no time is specified)"]
     Timer(TimerArgs),
     #[doc = "Start a stopwatch"]
     Stopwatch,
