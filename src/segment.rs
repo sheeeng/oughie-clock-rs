@@ -20,7 +20,7 @@ impl Segment {
             Self::Center => format!(" {color}  {reset}  "),
             Self::Right => format!("    {color}  {reset} "),
             Self::Sides => format!("{color}  {reset}  {color}  {reset} "),
-            Self::Empty => "     ".into(),
+            Self::Empty => "     ".to_string(),
         }
     }
 }

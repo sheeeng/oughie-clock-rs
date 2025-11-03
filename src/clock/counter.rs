@@ -73,7 +73,7 @@ impl Counter {
             elapsed = duration.saturating_sub(elapsed.saturating_sub(Duration::from_secs(1)));
             secs = elapsed.as_secs() as u32;
 
-            if kill && secs == 0 {
+            if secs == 0 && kill {
                 State::exit();
                 process::exit(1);
             }

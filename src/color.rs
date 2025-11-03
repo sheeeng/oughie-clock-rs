@@ -35,66 +35,6 @@ pub enum Color {
     },
 }
 
-impl<'de> Deserialize<'de> for Color {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-
-        Color::from_str(&s).map_err(de::Error::custom)
-    }
-}
-
-impl FromStr for Color {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "black" => Self::Black,
-            "red" => Self::Red,
-            "green" => Self::Green,
-            "yellow" => Self::Yellow,
-            "blue" => Self::Blue,
-            "magenta" => Self::Magenta,
-            "cyan" => Self::Cyan,
-            "white" => Self::White,
-            "bright-black" => Self::BrightBlack,
-            "bright-red" => Self::BrightRed,
-            "bright-green" => Self::BrightGreen,
-            "bright-yellow" => Self::BrightYellow,
-            "bright-blue" => Self::BrightBlue,
-            "bright-magenta" => Self::BrightMagenta,
-            "bright-cyan" => Self::BrightCyan,
-            "bright-white" => Self::BrightWhite,
-            _ if s.starts_with('#') => {
-                if s.len() != 7 {
-                    return Err(format!("expected format `#rrggbb`, found `{s}`"));
-                }
-
-                let red = Self::parse_rgb_component(&s[1..3])?;
-                let green = Self::parse_rgb_component(&s[3..5])?;
-                let blue = Self::parse_rgb_component(&s[5..7])?;
-
-                Self::Rgb {
-                    r: red,
-                    g: green,
-                    b: blue,
-                }
-            }
-            _ => {
-                let green_fg = Color::Green.foreground();
-                return Err(format!(
-                    "color `{s}` is neither a recognized color nor a valid hex color code.\n  [possible values: {}{}{}]",
-                    green_fg,
-                    Self::POSSIBLE_VALUES.join(&format!("{},{} ", Color::RESET, green_fg)),
-                    Color::RESET
-                ));
-            }
-        })
-    }
-}
-
 impl Color {
     pub const RESET: &'static str = esc!(0);
     pub const BOLD: &'static str = esc!(1);
@@ -166,5 +106,62 @@ impl Color {
 
     fn parse_rgb_component(hex: &str) -> Result<u8, String> {
         u8::from_str_radix(hex, 16).map_err(|err| err.to_string())
+    }
+}
+
+impl FromStr for Color {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "black" => Self::Black,
+            "red" => Self::Red,
+            "green" => Self::Green,
+            "yellow" => Self::Yellow,
+            "blue" => Self::Blue,
+            "magenta" => Self::Magenta,
+            "cyan" => Self::Cyan,
+            "white" => Self::White,
+            "bright-black" => Self::BrightBlack,
+            "bright-red" => Self::BrightRed,
+            "bright-green" => Self::BrightGreen,
+            "bright-yellow" => Self::BrightYellow,
+            "bright-blue" => Self::BrightBlue,
+            "bright-magenta" => Self::BrightMagenta,
+            "bright-cyan" => Self::BrightCyan,
+            "bright-white" => Self::BrightWhite,
+            _ if s.starts_with('#') => {
+                if s.len() != 7 {
+                    return Err(format!("expected format `#rrggbb`, found `{s}`"));
+                }
+
+                let r = Self::parse_rgb_component(&s[1..3])?;
+                let g = Self::parse_rgb_component(&s[3..5])?;
+                let b = Self::parse_rgb_component(&s[5..7])?;
+
+                Self::Rgb { r, g, b }
+            }
+            _ => {
+                let green_fg = Color::Green.foreground();
+
+                return Err(format!(
+                    "color `{s}` is neither a recognized color nor a valid hex color code.\n  [possible values: {}{}{}]",
+                    green_fg,
+                    Self::POSSIBLE_VALUES.join(&format!("{},{} ", Color::RESET, green_fg)),
+                    Color::RESET
+                ));
+            }
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for Color {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+
+        Color::from_str(&string).map_err(de::Error::custom)
     }
 }

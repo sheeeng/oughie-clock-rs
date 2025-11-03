@@ -57,7 +57,7 @@ pub struct DateConfig {
 impl Default for DateConfig {
     fn default() -> Self {
         Self {
-            fmt: "%d-%m-%Y".into(),
+            fmt: "%d-%m-%Y".to_string(),
             use_12h: false,
             utc: false,
             hide_seconds: false,
@@ -67,36 +67,47 @@ impl Default for DateConfig {
 
 impl Config {
     pub fn parse() -> Result<Self, Error> {
-        if let Some(file_path) = match env::var("CONF_PATH") {
+        let path = match env::var("CONF_PATH") {
             Ok(path) => match path.as_str() {
-                "None" => Ok(None),
-                _ => Ok(Some(path)),
+                "None" => None,
+                _ => Some(path),
             },
-            Err(VarError::NotUnicode(s)) => {
-                Err(Error::NonUnicodePath(s.to_string_lossy().to_string()))
+            Err(VarError::NotUnicode(path)) => {
+                return Err(Error::NonUnicodePath(path.to_string_lossy().to_string()));
             }
-
             Err(VarError::NotPresent) => match dirs::config_local_dir() {
-                Some(dir) => match dir.join("clock-rs").join("conf.toml").to_str() {
-                    Some(path) => match Path::new(path).exists() {
-                        true => Ok(Some(path.to_string())),
-                        false => Ok(None),
-                    },
-                    None => Err(Error::NonUnicodePath(dir.to_string_lossy().to_string())),
-                },
-                None => Ok(None),
+                Some(config_local_dir) => {
+                    match config_local_dir.join("clock-rs").join("conf.toml").to_str() {
+                        Some(path) => {
+                            if Path::new(path).exists() {
+                                Some(path.to_string())
+                            } else {
+                                None
+                            }
+                        }
+                        None => {
+                            return Err(Error::NonUnicodePath(
+                                config_local_dir.to_string_lossy().to_string(),
+                            ));
+                        }
+                    }
+                }
+                None => None,
             },
-        }? {
-            let config_str = fs::read_to_string(&file_path).map_err(|err| Error::ReadFile {
-                path: file_path.clone(),
-                err: err.to_string(),
-            })?;
-            toml::from_str(&config_str).map_err(|err| Error::ParseToml {
-                path: file_path,
-                err: err.to_string(),
-            })
-        } else {
-            Ok(Config::default())
-        }
+        };
+
+        let Some(file_path) = path else {
+            return Ok(Config::default());
+        };
+
+        let config_str = fs::read_to_string(&file_path).map_err(|err| Error::ReadFile {
+            path: file_path.clone(),
+            err: err.to_string(),
+        })?;
+
+        toml::from_str(&config_str).map_err(|err| Error::ParseToml {
+            path: file_path,
+            err: err.to_string(),
+        })
     }
 }

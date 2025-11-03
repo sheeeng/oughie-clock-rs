@@ -31,16 +31,22 @@ impl Clock {
     const PM_SUFFIX: &'static str = " [PM]";
 
     pub fn new(config: Config, mode: ClockMode) -> io::Result<Self> {
+        let Config {
+            position,
+            general,
+            date,
+        } = config;
+
         Ok(Self {
             mode,
             y: 0,
-            x_pos: config.position.x,
-            y_pos: config.position.y,
-            color: config.general.color,
-            use_12h: config.date.use_12h,
-            hide_seconds: config.date.hide_seconds,
-            blink: config.general.blink,
-            bold: config.general.bold,
+            x_pos: position.x,
+            y_pos: position.y,
+            color: general.color,
+            use_12h: date.use_12h,
+            hide_seconds: date.hide_seconds,
+            blink: general.blink,
+            bold: general.bold,
             left_pad: String::new(),
             text_left_pad: String::new(),
         })
@@ -64,10 +70,10 @@ impl Clock {
 
     fn width(&self) -> usize {
         if self.hide_seconds {
-            Self::WIDTH_NO_SECONDS
-        } else {
-            Self::WIDTH
+            return Self::WIDTH_NO_SECONDS;
         }
+
+        Self::WIDTH
     }
 }
 

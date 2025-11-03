@@ -28,16 +28,21 @@ impl State {
         let args = Args::parse();
         let mut config = Config::parse()?;
         let mode = args.mode.clone();
+
         args.overwrite(&mut config);
 
         let clock_mode = match mode {
-            None | Some(Mode::Clock) => ClockMode::Time {
-                time_zone: TimeZone::from_bool(config.date.utc),
+            Some(Mode::Clock) | None => ClockMode::Time {
+                time_zone: if config.date.utc {
+                    TimeZone::Utc
+                } else {
+                    TimeZone::Local
+                },
                 date_format: config.date.fmt.clone(),
             },
             Some(Mode::Timer(args)) => {
                 let total_seconds =
-                    if matches!((args.seconds, args.minutes, args.hours), (None, None, None)) {
+                    if args.seconds.is_none() && args.minutes.is_none() && args.hours.is_none() {
                         Counter::DEFAULT_TIMER_DURATION
                     } else {
                         let seconds = args.seconds.unwrap_or(0);
@@ -71,6 +76,7 @@ impl State {
 
         let (width, height) = terminal::size().map_err(Error::Io)?;
         let mut clock = Clock::new(config, clock_mode).map_err(Error::Io)?;
+
         clock.update_position(width, height);
 
         Ok(Self {
@@ -88,45 +94,47 @@ impl State {
         loop {
             self.render()?;
 
-            if event::poll(self.interval)? {
-                match event::read()? {
-                    Event::Key(key_event) => match key_event {
-                        KeyEvent {
-                            code: KeyCode::Esc | KeyCode::Char('Q' | 'q'),
-                            modifiers: KeyModifiers::NONE,
-                            ..
-                        }
-                        | KeyEvent {
-                            code: KeyCode::Char('c'),
-                            modifiers: KeyModifiers::CONTROL,
-                            ..
-                        } => break Ok(()),
-                        KeyEvent {
-                            code: KeyCode::Char(character @ ('P' | 'p' | 'R' | 'r')),
-                            kind: KeyEventKind::Press,
-                            modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
-                            ..
-                        } => {
-                            if let ClockMode::Counter(counter) = &mut self.clock.mode {
-                                if character == 'P' || character == 'p' {
-                                    counter.toggle_pause();
-                                } else {
-                                    counter.restart();
-                                }
+            if !event::poll(self.interval)? {
+                continue;
+            }
 
-                                let (width, height) = terminal::size()?;
-                                self.clock.update_position(width, height);
-                                execute!(stdout, Clear(ClearType::All))?;
+            match event::read()? {
+                Event::Key(key_event) => match key_event {
+                    KeyEvent {
+                        code: KeyCode::Esc | KeyCode::Char('Q' | 'q'),
+                        modifiers: KeyModifiers::NONE,
+                        ..
+                    }
+                    | KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
+                    } => return Ok(()),
+                    KeyEvent {
+                        code: KeyCode::Char(character @ ('P' | 'p' | 'R' | 'r')),
+                        kind: KeyEventKind::Press,
+                        modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
+                        ..
+                    } => {
+                        if let ClockMode::Counter(counter) = &mut self.clock.mode {
+                            if character == 'P' || character == 'p' {
+                                counter.toggle_pause();
+                            } else {
+                                counter.restart();
                             }
+
+                            let (width, height) = terminal::size()?;
+                            self.clock.update_position(width, height);
+                            execute!(stdout, Clear(ClearType::All))?;
                         }
-                        _ => (),
-                    },
-                    Event::Resize(width, height) => {
-                        self.clock.update_position(width, height);
-                        execute!(stdout, Clear(ClearType::All))?;
                     }
                     _ => (),
+                },
+                Event::Resize(width, height) => {
+                    self.clock.update_position(width, height);
+                    execute!(stdout, Clear(ClearType::All))?;
                 }
+                _ => (),
             }
         }
     }

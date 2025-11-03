@@ -18,7 +18,7 @@ impl ClockMode {
 
     pub fn text(&self) -> String {
         match self {
-            Self::Counter(counter) => counter.text.into(),
+            Self::Counter(counter) => counter.text.to_string(),
             Self::Time {
                 time_zone,
                 date_format,
@@ -31,7 +31,7 @@ impl Default for ClockMode {
     fn default() -> Self {
         Self::Time {
             time_zone: TimeZone::Local,
-            date_format: "%d-%m-%Y".into(),
+            date_format: "%d-%m-%Y".to_string(),
         }
     }
 }

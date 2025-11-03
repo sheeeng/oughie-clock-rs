@@ -6,13 +6,6 @@ pub enum TimeZone {
 }
 
 impl TimeZone {
-    pub fn from_bool(utc: bool) -> Self {
-        match utc {
-            true => Self::Utc,
-            false => Self::Local,
-        }
-    }
-
     pub fn get_time(&self) -> (u32, u32, u32) {
         match self {
             Self::Local => {
