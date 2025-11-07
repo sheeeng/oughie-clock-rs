@@ -145,15 +145,15 @@ Commands:
 
 Options:
   -c, --color <COLOR>        Specify the clock color
+  -i, --interval <INTERVAL>  Set the polling interval in milliseconds
+  -B, --blink                Set the colon to blink
+  -b, --bold                 Use bold text
   -x, --x-pos <X_POS>        Set the position along the horizontal axis
   -y, --y-pos <Y_POS>        Set the position along the vertical axis
       --fmt <FMT>            Set the date format
   -t                         Use the 12h format
-  -i, --interval <INTERVAL>  Set the polling interval in milliseconds
       --utc                  Use UTC time
   -s, --hide-seconds         Do not show seconds
-  -B, --blink                Set the colon to blink
-  -b, --bold                 Use bold text
   -h, --help                 Print help
   -V, --version              Print version
 ```
@@ -180,12 +180,16 @@ Options:
   -h, --help  Print help
 ```
 
-Press <kbd>P</kbd> to toggle the pause on the timer or stopwatch, and <kbd>R</kbd> to restart.  
-To exit the application, press <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
-
 > [!NOTE]
 > If no command is specified, the `clock` command is used by default.  
 > Therefore, running `$ clock-rs clock` or simply `$ clock-rs` will both display the current time.
+
+Press <kbd>P</kbd> to toggle the pause on the timer or stopwatch, and <kbd>R</kbd> to restart.  
+To exit the application, press <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
+
+You can reload the configuration file without restarting the application  
+by either pressing <kbd>Ctrl + R</kbd> or sending the `SIGUSR1` signal on Unix-like systems.  
+Note that this will overwrite any settings previously set by command-line arguments.
 
 ## Configuration
 

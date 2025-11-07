@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 use super::{counter::Counter, time_zone::TimeZone};
 
 pub enum ClockMode {
@@ -16,13 +18,13 @@ impl ClockMode {
         }
     }
 
-    pub fn text(&self) -> String {
+    pub fn text(&self, max_len: u16) -> Result<String, Error> {
         match self {
-            Self::Counter(counter) => counter.text.to_string(),
+            Self::Counter(counter) => Ok(counter.text.to_string()),
             Self::Time {
                 time_zone,
                 date_format,
-            } => time_zone.text(date_format),
+            } => time_zone.text(date_format, max_len),
         }
     }
 }

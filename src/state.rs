@@ -3,6 +3,11 @@ use std::{
     time::Duration,
 };
 
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+
 use clap::Parser;
 use crossterm::{
     cursor::{Hide, MoveTo, Show},
@@ -10,6 +15,9 @@ use crossterm::{
     execute,
     terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
+
+#[cfg(unix)]
+use signal_hook::{consts, flag};
 
 use crate::{
     cli::{Args, Mode},
@@ -31,13 +39,20 @@ impl State {
 
         args.overwrite(&mut config);
 
-        let clock_mode = match mode {
+        let clock_mode = Self::clock_mode(mode, &config)?;
+        let interval = Duration::from_millis(config.general.interval);
+        let (width, height) = terminal::size().map_err(Error::Io)?;
+        let mut clock = Clock::new(config, clock_mode);
+
+        clock.update_padding(width, height)?;
+
+        Ok(Self { clock, interval })
+    }
+
+    fn clock_mode(mode: Option<Mode>, config: &Config) -> Result<ClockMode, Error> {
+        Ok(match mode {
             Some(Mode::Clock) | None => ClockMode::Time {
-                time_zone: if config.date.utc {
-                    TimeZone::Utc
-                } else {
-                    TimeZone::Local
-                },
+                time_zone: TimeZone::from_utc(config.date.utc),
                 date_format: config.date.fmt.clone(),
             },
             Some(Mode::Timer(args)) => {
@@ -45,9 +60,9 @@ impl State {
                     if args.seconds.is_none() && args.minutes.is_none() && args.hours.is_none() {
                         Counter::DEFAULT_TIMER_DURATION
                     } else {
-                        let seconds = args.seconds.unwrap_or(0);
-                        let minutes = args.minutes.unwrap_or(0);
-                        let hours = args.hours.unwrap_or(0);
+                        let seconds = args.seconds.unwrap_or_default();
+                        let minutes = args.minutes.unwrap_or_default();
+                        let hours = args.hours.unwrap_or_default();
 
                         if seconds >= 60 {
                             return Err(Error::TooManySeconds(seconds));
@@ -70,28 +85,51 @@ impl State {
                 }))
             }
             Some(Mode::Stopwatch) => ClockMode::Counter(Counter::new(CounterType::Stopwatch)),
-        };
-
-        let interval = config.general.interval;
-
-        let (width, height) = terminal::size().map_err(Error::Io)?;
-        let mut clock = Clock::new(config, clock_mode).map_err(Error::Io)?;
-
-        clock.update_position(width, height);
-
-        Ok(Self {
-            clock,
-            interval: Duration::from_millis(interval),
         })
     }
 
-    pub fn run(mut self) -> io::Result<()> {
+    pub fn run(mut self) -> Result<(), Error> {
         let mut stdout = io::stdout();
 
         terminal::enable_raw_mode()?;
         execute!(stdout, EnterAlternateScreen, Hide)?;
 
+        let reload_config = Arc::new(AtomicBool::new(false));
+
+        #[cfg(unix)]
+        flag::register(consts::SIGUSR1, Arc::clone(&reload_config))?;
+
         loop {
+            if reload_config.swap(false, Ordering::Relaxed) {
+                let clock = &mut self.clock;
+                let config = Config::parse()?;
+
+                clock.color = config.general.color;
+                self.interval = Duration::from_millis(config.general.interval);
+                clock.blink = config.general.blink;
+                clock.bold = config.general.bold;
+
+                clock.x_pos = config.position.x;
+                clock.y_pos = config.position.y;
+
+                clock.use_12h = config.date.use_12h;
+                clock.hide_seconds = config.date.hide_seconds;
+
+                if let ClockMode::Time {
+                    time_zone,
+                    date_format,
+                } = &mut self.clock.mode
+                {
+                    *time_zone = TimeZone::from_utc(config.date.utc);
+                    *date_format = config.date.fmt;
+                }
+
+                let (width, height) = terminal::size()?;
+
+                execute!(stdout, terminal::Clear(ClearType::All))?;
+                self.clock.update_padding(width, height)?;
+            }
+
             self.render()?;
 
             if !event::poll(self.interval)? {
@@ -124,14 +162,20 @@ impl State {
                             }
 
                             let (width, height) = terminal::size()?;
-                            self.clock.update_position(width, height);
+
+                            self.clock.update_padding(width, height)?;
                             execute!(stdout, Clear(ClearType::All))?;
                         }
                     }
+                    KeyEvent {
+                        code: KeyCode::Char('r'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
+                    } => reload_config.store(true, Ordering::Relaxed),
                     _ => (),
                 },
                 Event::Resize(width, height) => {
-                    self.clock.update_position(width, height);
+                    self.clock.update_padding(width, height)?;
                     execute!(stdout, Clear(ClearType::All))?;
                 }
                 _ => (),
@@ -139,28 +183,27 @@ impl State {
         }
     }
 
-    pub fn render(&self) -> io::Result<()> {
+    pub fn render(&self) -> Result<(), Error> {
         let mut stdout = io::stdout();
         let (width, height) = terminal::size()?;
 
-        if self.clock.is_too_large(width.into(), height.into()) {
+        if self.clock.is_too_large(width, height) {
             return Ok(());
         }
 
         let lock = stdout.lock();
         let mut w = io::BufWriter::new(lock);
 
-        execute!(stdout, MoveTo(0, self.clock.y))?;
+        execute!(stdout, MoveTo(0, self.clock.padding.top))?;
+        self.clock.fmt(&mut w)?;
 
-        write!(w, "{}", self.clock)?;
+        w.flush()?;
 
-        w.flush()
+        Ok(())
     }
 
     pub fn exit() {
-        let mut stdout = io::stdout();
-
-        execute!(stdout, LeaveAlternateScreen, Show).expect(
+        execute!(io::stdout(), LeaveAlternateScreen, Show).expect(
             "error: failed to leave alternate screen, you might have to restart your terminal",
         );
         terminal::disable_raw_mode()

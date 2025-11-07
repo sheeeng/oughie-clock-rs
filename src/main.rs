@@ -11,10 +11,10 @@ mod state;
 
 use std::process;
 
-use crate::{color::Color, error::Error, state::State};
+use crate::{color::Color, state::State};
 
 fn main() {
-    if let Err(err) = (|| State::new()?.run().map_err(Error::Io))() {
+    if let Err(err) = (|| State::new()?.run())() {
         println!("{}error:{} {err}", esc!("1;31"), Color::RESET);
         process::exit(1);
     }

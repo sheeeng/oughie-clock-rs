@@ -2,44 +2,50 @@ pub mod counter;
 pub mod mode;
 pub mod time_zone;
 
-use std::{fmt, io};
+use std::io::{BufWriter, StdoutLock, Write};
 
 use crate::{
-    character::Character, clock::mode::ClockMode, color::Color, config::Config, position::Position,
+    character::Character, clock::mode::ClockMode, color::Color, config::Config, error::Error,
+    position::Position,
 };
+
+#[derive(Default)]
+pub struct Padding {
+    pub top: u16,
+    clock: String,
+    text: String,
+}
 
 pub struct Clock {
     pub mode: ClockMode,
-    pub y: u16,
-    x_pos: Position,
-    y_pos: Position,
-    color: Color,
-    use_12h: bool,
-    hide_seconds: bool,
-    blink: bool,
-    bold: bool,
-    left_pad: String,
-    text_left_pad: String,
+    pub padding: Padding,
+    pub x_pos: Position,
+    pub y_pos: Position,
+    pub color: Color,
+    pub use_12h: bool,
+    pub hide_seconds: bool,
+    pub blink: bool,
+    pub bold: bool,
 }
 
 impl Clock {
-    const WIDTH: usize = 51;
-    const WIDTH_NO_SECONDS: usize = 32;
-    const HEIGHT: usize = 7;
-    const SUFFIX_LEN: usize = 5;
+    const WIDTH: u16 = 51;
+    const WIDTH_NO_SECONDS: u16 = 32;
+    const HEIGHT: u16 = 7;
+    const SUFFIX_LEN: u16 = 5;
     const AM_SUFFIX: &'static str = " [AM]";
     const PM_SUFFIX: &'static str = " [PM]";
 
-    pub fn new(config: Config, mode: ClockMode) -> io::Result<Self> {
+    pub fn new(config: Config, mode: ClockMode) -> Self {
         let Config {
             position,
             general,
             date,
         } = config;
 
-        Ok(Self {
+        Self {
             mode,
-            y: 0,
+            padding: Padding::default(),
             x_pos: position.x,
             y_pos: position.y,
             color: general.color,
@@ -47,39 +53,43 @@ impl Clock {
             hide_seconds: date.hide_seconds,
             blink: general.blink,
             bold: general.bold,
-            left_pad: String::new(),
-            text_left_pad: String::new(),
-        })
+        }
     }
 
-    pub fn update_position(&mut self, width: u16, height: u16) {
-        let text_len = self.mode.text().len() + if self.use_12h { Self::SUFFIX_LEN } else { 0 };
+    pub fn update_padding(&mut self, width: u16, height: u16) -> Result<(), Error> {
+        let clock_width = self.width();
+        let text_len = self.mode.text(clock_width)?.len() as u16
+            + if self.use_12h { Self::SUFFIX_LEN } else { 0 };
 
-        let half_width = self.width() / 2;
+        let half_width = clock_width / 2;
 
-        let x = self.x_pos.calculate(width.into(), half_width);
-        self.y = self.y_pos.calculate(height.into(), Self::HEIGHT / 2) as u16;
+        let x = self.x_pos.calculate(width, half_width);
+        self.padding.top = self.y_pos.calculate(height, Self::HEIGHT / 2);
 
-        self.left_pad = " ".repeat(x);
-        self.text_left_pad = " ".repeat(x + half_width.saturating_sub(text_len / 2));
+        self.padding.clock = " ".repeat(x as usize);
+        self.padding.text = format!(
+            "{}{}",
+            self.padding.clock,
+            " ".repeat(half_width.saturating_sub(text_len / 2) as usize)
+        );
+
+        Ok(())
     }
 
-    pub fn is_too_large(&self, width: usize, height: usize) -> bool {
+    pub fn is_too_large(&self, width: u16, height: u16) -> bool {
         self.width() + 1 >= width || Self::HEIGHT + 1 >= height
     }
 
-    fn width(&self) -> usize {
+    fn width(&self) -> u16 {
         if self.hide_seconds {
             return Self::WIDTH_NO_SECONDS;
         }
 
         Self::WIDTH
     }
-}
 
-impl fmt::Display for Clock {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut text = self.mode.text();
+    pub fn fmt(&self, w: &mut BufWriter<StdoutLock<'_>>) -> Result<(), Error> {
+        let mut text = self.mode.text(self.width())?;
         let (mut hour, minute, second) = self.mode.get_time();
 
         match self.mode {
@@ -104,12 +114,8 @@ impl fmt::Display for Clock {
         let color = &self.color;
 
         for row in 0..5 {
-            let colon_character = if self.blink {
-                if second & 1 == 0 {
-                    Character::Colon
-                } else {
-                    Character::Empty
-                }
+            let colon_character = if self.blink && (second & 1 == 1) {
+                Character::Empty
             } else {
                 Character::Colon
             };
@@ -120,24 +126,27 @@ impl fmt::Display for Clock {
             let m0 = Character::Num(minute / 10).fmt(color, row);
             let m1 = Character::Num(minute % 10).fmt(color, row);
 
-            write!(f, "{}{h0}{h1}{colon}{m0}{m1}", self.left_pad)?;
+            write!(w, "{}{h0}{h1}{colon}{m0}{m1}", self.padding.clock)?;
 
             if !self.hide_seconds {
                 let s0 = Character::Num(second / 10).fmt(color, row);
                 let s1 = Character::Num(second % 10).fmt(color, row);
-                write!(f, "{colon}{s0}{s1}")?;
+
+                write!(w, "{colon}{s0}{s1}")?;
             }
 
-            writeln!(f, "\r")?;
+            writeln!(w, "\r")?;
         }
 
         let bold_escape_str = if self.bold { Color::BOLD } else { "" };
 
         writeln!(
-            f,
+            w,
             "\n{bold_escape_str}{}{}{text}",
-            self.text_left_pad,
-            self.color.foreground(),
-        )
+            self.padding.text,
+            self.color.foreground()
+        )?;
+
+        Ok(())
     }
 }

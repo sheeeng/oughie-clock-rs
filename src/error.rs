@@ -10,6 +10,10 @@ pub enum Error {
     TooManyMinutes(u64),
     #[error("the hours part of the timer must be under 100 hours: {0}h >= 100h")]
     TooManyHours(u64),
+    #[error("the formatted date exceeds the clock's width: {fmt_len} > {max_len}")]
+    DateFormatTooWide { fmt_len: u16, max_len: u16 },
+    #[error("failed to format the date string `{fmt}`: {err}")]
+    DateFormatInvalid { fmt: String, err: String },
     #[error("configuration path is invalid unicode: `{0}`")]
     NonUnicodePath(String),
     #[error("failed to read file `{path}`: {err}")]
@@ -17,5 +21,5 @@ pub enum Error {
     #[error("failed to parse configuration file `{path}`:\n{err}")]
     ParseToml { path: String, err: String },
     #[error("IO error: {0}")]
-    Io(io::Error),
+    Io(#[from] io::Error),
 }
