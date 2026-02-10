@@ -7,9 +7,9 @@ use crate::state::State;
 
 pub struct Counter {
     pub text: &'static str,
+    ty: CounterType,
     start: Instant,
     last_pause: Option<Instant>,
-    ty: CounterType,
     paused: bool,
 }
 
@@ -20,15 +20,16 @@ pub enum CounterType {
 
 impl Counter {
     pub const DEFAULT_TIMER_DURATION: u64 = 5 * 60;
+    pub const MAX_TIMER_DURATION: u64 = 99 * 3600 + 59 * 60 + 59;
     const TEXT: &'static str = "P: Toggle Pause, R: Restart";
     const TEXT_PAUSED: &'static str = "P: Toggle Pause, R: Restart [Paused]";
 
     pub fn new(ty: CounterType) -> Self {
         Self {
+            text: Self::TEXT,
+            ty,
             start: Instant::now(),
             last_pause: None,
-            ty,
-            text: Self::TEXT,
             paused: false,
         }
     }

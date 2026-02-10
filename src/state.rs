@@ -20,8 +20,13 @@ use crossterm::{
 use signal_hook::{consts, flag};
 
 use crate::{
-    cli::{Args, Mode},
-    clock::{counter::Counter, counter::CounterType, mode::ClockMode, time_zone::TimeZone, Clock},
+    cli::{Args, Mode, TimerArgs},
+    clock::{
+        counter::{Counter, CounterType},
+        mode::ClockMode,
+        time_zone::TimeZone,
+        Clock,
+    },
     config::Config,
     error::Error,
 };
@@ -50,42 +55,51 @@ impl State {
     }
 
     fn clock_mode(mode: Option<Mode>, config: &Config) -> Result<ClockMode, Error> {
-        Ok(match mode {
-            Some(Mode::Clock) | None => ClockMode::Time {
+        if let Some(Mode::Clock) | None = mode {
+            return Ok(ClockMode::Time {
                 time_zone: TimeZone::from_utc(config.date.utc),
                 date_format: config.date.fmt.clone(),
-            },
-            Some(Mode::Timer(args)) => {
-                let total_seconds =
-                    if args.seconds.is_none() && args.minutes.is_none() && args.hours.is_none() {
-                        Counter::DEFAULT_TIMER_DURATION
-                    } else {
-                        let seconds = args.seconds.unwrap_or_default();
-                        let minutes = args.minutes.unwrap_or_default();
-                        let hours = args.hours.unwrap_or_default();
+            });
+        }
 
-                        if seconds >= 60 {
-                            return Err(Error::TooManySeconds(seconds));
-                        }
+        if let Some(Mode::Stopwatch) = mode {
+            return Ok(ClockMode::Counter(Counter::new(CounterType::Stopwatch)));
+        };
 
-                        if minutes >= 60 {
-                            return Err(Error::TooManyMinutes(minutes));
-                        }
+        let Some(Mode::Timer(TimerArgs {
+            seconds,
+            minutes,
+            hours,
+            kill,
+        })) = mode
+        else {
+            unreachable!();
+        };
 
-                        if hours >= 100 {
-                            return Err(Error::TooManyHours(hours));
-                        }
+        let total_seconds = match (seconds, minutes, hours) {
+            (None, None, None) => Counter::DEFAULT_TIMER_DURATION,
+            _ => {
+                let seconds = seconds.unwrap_or_default();
+                let minutes = minutes.unwrap_or_default();
+                let hours = hours.unwrap_or_default();
+                let total_seconds = hours * 3600 + minutes * 60 + seconds;
 
-                        seconds + 60 * minutes + 3600 * hours
-                    };
+                if total_seconds > Counter::MAX_TIMER_DURATION {
+                    return Err(Error::TimerDurationTooLong {
+                        hours,
+                        minutes,
+                        seconds,
+                    });
+                }
 
-                ClockMode::Counter(Counter::new(CounterType::Timer {
-                    duration: Duration::from_secs(total_seconds),
-                    kill: args.kill,
-                }))
+                total_seconds
             }
-            Some(Mode::Stopwatch) => ClockMode::Counter(Counter::new(CounterType::Stopwatch)),
-        })
+        };
+
+        Ok(ClockMode::Counter(Counter::new(CounterType::Timer {
+            duration: Duration::from_secs(total_seconds),
+            kill,
+        })))
     }
 
     pub fn run(mut self) -> Result<(), Error> {
