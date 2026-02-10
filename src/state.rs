@@ -20,7 +20,7 @@ use crossterm::{
 use signal_hook::{consts, flag};
 
 use crate::{
-    cli::{Args, Mode, TimerArgs},
+    cli::args::{Args, Mode, TimerArgs},
     clock::{
         counter::{Counter, CounterType},
         mode::ClockMode,

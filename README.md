@@ -16,6 +16,8 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
   - [Using a package manager](#using-a-package-manager)
   - [Building from source](#building-from-source)
 - [Usage](#usage)
+  - [Reloading the configuration](#reloading-the-configuration)
+  - [Shell completion](#shell-completion)
 - [Configuration](#configuration)
   - [Fields](#fields)
   - [Example](#example)
@@ -26,6 +28,7 @@ A modern, digital clock that _effortlessly_ runs in your terminal.
 
 `clock-rs` is a terminal-based clock written in Rust, designed to be a new alternative to [tty-clock](https://github.com/xorg62/tty-clock).  
 It supports all major platforms and offers several improvements, which include:
+
 - The use of a single configuration file to manage its settings, with the ability to override them through the command line,
 - Many additional features such as a timer and a stopwatch,
 - And greater flexibility as well as better user experience!
@@ -183,13 +186,23 @@ Options:
 > [!NOTE]
 > If no command is specified, the `clock` command is used by default.  
 > Therefore, running `$ clock-rs clock` or simply `$ clock-rs` will both display the current time.
+> 
+> The timer converts time units by itself, so that e.g. `$ clock-rs timer -M 90` starts a timer with 1 hour and 30 minutes.  
+> The maximum timer duration is 99 hours, 59 minutes and 59 seconds.
 
 Press <kbd>P</kbd> to toggle the pause on the timer or stopwatch, and <kbd>R</kbd> to restart.  
 To exit the application, press <kbd>Escape</kbd>, <kbd>Q</kbd>, or <kbd>Ctrl + C</kbd>.
 
+### Reloading the configuration
+
 You can reload the configuration file without restarting the application  
 by either pressing <kbd>Ctrl + R</kbd> or sending the `SIGUSR1` signal on Unix-like systems.  
 Note that this will overwrite any settings previously set by command-line arguments.
+
+### Shell completion
+
+Shell completion files are automatically generated and placed inside the `target/completions` directory.  
+The following shells are supported: `Bash`, `Zsh`, `Fish`, `PowerShell`, `Elvish`
 
 ## Configuration
 
