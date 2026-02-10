@@ -2,7 +2,10 @@ pub mod counter;
 pub mod mode;
 pub mod time_zone;
 
-use std::io::{BufWriter, StdoutLock, Write};
+use std::{
+    io::{BufWriter, StdoutLock, Write},
+    time::Duration,
+};
 
 use crate::{
     character::Character, clock::mode::ClockMode, color::Color, config::Config, error::Error,
@@ -19,6 +22,7 @@ pub struct Padding {
 pub struct Clock {
     pub mode: ClockMode,
     pub padding: Padding,
+    pub interval: Duration,
     pub x_pos: Position,
     pub y_pos: Position,
     pub color: Color,
@@ -37,22 +41,17 @@ impl Clock {
     const PM_SUFFIX: &'static str = " [PM]";
 
     pub fn new(config: Config, mode: ClockMode) -> Self {
-        let Config {
-            position,
-            general,
-            date,
-        } = config;
-
         Self {
             mode,
             padding: Padding::default(),
-            x_pos: position.x,
-            y_pos: position.y,
-            color: general.color,
-            use_12h: date.use_12h,
-            hide_seconds: date.hide_seconds,
-            blink: general.blink,
-            bold: general.bold,
+            interval: Duration::from_millis(config.general.interval),
+            x_pos: config.position.x,
+            y_pos: config.position.y,
+            color: config.general.color,
+            use_12h: config.date.use_12h,
+            hide_seconds: config.date.hide_seconds,
+            blink: config.general.blink,
+            bold: config.general.bold,
         }
     }
 
@@ -63,10 +62,10 @@ impl Clock {
 
         let half_width = clock_width / 2;
 
-        let x = self.x_pos.calculate(width, half_width);
+        let column = self.x_pos.calculate(width, half_width);
         self.padding.top = self.y_pos.calculate(height, Self::HEIGHT / 2);
 
-        self.padding.clock = " ".repeat(x as usize);
+        self.padding.clock = " ".repeat(column as usize);
         self.padding.text = format!(
             "{}{}",
             self.padding.clock,
@@ -92,23 +91,20 @@ impl Clock {
         let mut text = self.mode.text(self.width())?;
         let (mut hour, minute, second) = self.mode.get_time();
 
-        match self.mode {
-            ClockMode::Time { .. } if self.use_12h => {
-                let suffix = if hour < 12 {
-                    Self::AM_SUFFIX
-                } else {
-                    Self::PM_SUFFIX
-                };
+        if matches!(self.mode, ClockMode::Time { .. }) && self.use_12h {
+            let suffix = if hour < 12 {
+                Self::AM_SUFFIX
+            } else {
+                Self::PM_SUFFIX
+            };
 
-                text.push_str(suffix);
+            text.push_str(suffix);
 
-                if hour > 12 {
-                    hour -= 12;
-                } else if hour == 0 {
-                    hour = 12;
-                }
+            if hour > 12 {
+                hour -= 12;
+            } else if hour == 0 {
+                hour = 12;
             }
-            _ => (),
         }
 
         let color = &self.color;

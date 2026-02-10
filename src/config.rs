@@ -73,22 +73,17 @@ impl Config {
                 _ => Some(path),
             },
             Err(VarError::NotUnicode(path)) => {
-                return Err(Error::NonUnicodePath(path.to_string_lossy().to_string()));
+                return Err(Error::NonUnicodePath(path.display().to_string()));
             }
             Err(VarError::NotPresent) => match dirs::config_local_dir() {
                 Some(config_local_dir) => {
                     match config_local_dir.join("clock-rs").join("conf.toml").to_str() {
-                        Some(path) => {
-                            if Path::new(path).exists() {
-                                Some(path.to_string())
-                            } else {
-                                None
-                            }
-                        }
+                        Some(path) if Path::new(path).exists() => Some(path.to_string()),
+                        Some(_) => None,
                         None => {
                             return Err(Error::NonUnicodePath(
-                                config_local_dir.to_string_lossy().to_string(),
-                            ));
+                                config_local_dir.display().to_string(),
+                            ))
                         }
                     }
                 }

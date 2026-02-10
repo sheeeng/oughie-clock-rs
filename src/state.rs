@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Write},
+    io::{self, BufWriter, Write},
     time::Duration,
 };
 
@@ -33,7 +33,6 @@ use crate::{
 
 pub struct State {
     clock: Clock,
-    interval: Duration,
 }
 
 impl State {
@@ -45,35 +44,31 @@ impl State {
         args.overwrite(&mut config);
 
         let clock_mode = Self::clock_mode(mode, &config)?;
-        let interval = Duration::from_millis(config.general.interval);
-        let (width, height) = terminal::size().map_err(Error::Io)?;
         let mut clock = Clock::new(config, clock_mode);
 
+        let (width, height) = terminal::size().map_err(Error::Io)?;
         clock.update_padding(width, height)?;
 
-        Ok(Self { clock, interval })
+        Ok(Self { clock })
     }
 
     fn clock_mode(mode: Option<Mode>, config: &Config) -> Result<ClockMode, Error> {
-        if let Some(Mode::Clock) | None = mode {
-            return Ok(ClockMode::Time {
-                time_zone: TimeZone::from_utc(config.date.utc),
-                date_format: config.date.fmt.clone(),
-            });
-        }
-
-        if let Some(Mode::Stopwatch) = mode {
-            return Ok(ClockMode::Counter(Counter::new(CounterType::Stopwatch)));
-        };
-
-        let Some(Mode::Timer(TimerArgs {
+        let TimerArgs {
             seconds,
             minutes,
             hours,
             kill,
-        })) = mode
-        else {
-            unreachable!();
+        } = match mode {
+            Some(Mode::Clock) | None => {
+                return Ok(ClockMode::Time {
+                    time_zone: TimeZone::from_utc(config.date.utc),
+                    date_format: config.date.fmt.clone(),
+                });
+            }
+            Some(Mode::Stopwatch) => {
+                return Ok(ClockMode::Counter(Counter::new(CounterType::Stopwatch)))
+            }
+            Some(Mode::Timer(timer_args)) => timer_args,
         };
 
         let total_seconds = match (seconds, minutes, hours) {
@@ -103,10 +98,8 @@ impl State {
     }
 
     pub fn run(mut self) -> Result<(), Error> {
-        let mut stdout = io::stdout();
-
         terminal::enable_raw_mode()?;
-        execute!(stdout, EnterAlternateScreen, Hide)?;
+        execute!(io::stdout(), EnterAlternateScreen, Hide)?;
 
         let reload_config = Arc::new(AtomicBool::new(false));
 
@@ -115,38 +108,12 @@ impl State {
 
         loop {
             if reload_config.swap(false, Ordering::Relaxed) {
-                let clock = &mut self.clock;
-                let config = Config::parse()?;
-
-                clock.color = config.general.color;
-                self.interval = Duration::from_millis(config.general.interval);
-                clock.blink = config.general.blink;
-                clock.bold = config.general.bold;
-
-                clock.x_pos = config.position.x;
-                clock.y_pos = config.position.y;
-
-                clock.use_12h = config.date.use_12h;
-                clock.hide_seconds = config.date.hide_seconds;
-
-                if let ClockMode::Time {
-                    time_zone,
-                    date_format,
-                } = &mut self.clock.mode
-                {
-                    *time_zone = TimeZone::from_utc(config.date.utc);
-                    *date_format = config.date.fmt;
-                }
-
-                let (width, height) = terminal::size()?;
-
-                execute!(stdout, terminal::Clear(ClearType::All))?;
-                self.clock.update_padding(width, height)?;
+                self.reload_config()?;
             }
 
             self.render()?;
 
-            if !event::poll(self.interval)? {
+            if !event::poll(self.clock.interval)? {
                 continue;
             }
 
@@ -163,57 +130,35 @@ impl State {
                         ..
                     } => return Ok(()),
                     KeyEvent {
+                        code: KeyCode::Char('r'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
+                    } => reload_config.store(true, Ordering::Relaxed),
+                    KeyEvent {
                         code: KeyCode::Char(character @ ('P' | 'p' | 'R' | 'r')),
                         kind: KeyEventKind::Press,
                         modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
                         ..
                     } => {
-                        if let ClockMode::Counter(counter) = &mut self.clock.mode {
-                            if character == 'P' || character == 'p' {
-                                counter.toggle_pause();
-                            } else {
-                                counter.restart();
-                            }
+                        let ClockMode::Counter(counter) = &mut self.clock.mode else {
+                            continue;
+                        };
 
-                            let (width, height) = terminal::size()?;
-
-                            self.clock.update_padding(width, height)?;
-                            execute!(stdout, Clear(ClearType::All))?;
+                        match character {
+                            'P' | 'p' => counter.toggle_pause(),
+                            _ => counter.restart(),
                         }
+
+                        let (width, height) = terminal::size()?;
+                        self.refresh_display(width, height)?;
                     }
-                    KeyEvent {
-                        code: KeyCode::Char('r'),
-                        modifiers: KeyModifiers::CONTROL,
-                        ..
-                    } => reload_config.store(true, Ordering::Relaxed),
                     _ => (),
                 },
-                Event::Resize(width, height) => {
-                    self.clock.update_padding(width, height)?;
-                    execute!(stdout, Clear(ClearType::All))?;
-                }
+                Event::Resize(width, height) => self.refresh_display(width, height)?,
+
                 _ => (),
             }
         }
-    }
-
-    pub fn render(&self) -> Result<(), Error> {
-        let mut stdout = io::stdout();
-        let (width, height) = terminal::size()?;
-
-        if self.clock.is_too_large(width, height) {
-            return Ok(());
-        }
-
-        let lock = stdout.lock();
-        let mut w = io::BufWriter::new(lock);
-
-        execute!(stdout, MoveTo(0, self.clock.padding.top))?;
-        self.clock.fmt(&mut w)?;
-
-        w.flush()?;
-
-        Ok(())
     }
 
     pub fn exit() {
@@ -222,6 +167,59 @@ impl State {
         );
         terminal::disable_raw_mode()
             .expect("error: failed to disable raw mode, you might have to restart your terminal");
+    }
+
+    fn refresh_display(&mut self, width: u16, height: u16) -> Result<(), Error> {
+        execute!(io::stdout(), Clear(ClearType::All))?;
+        self.clock.update_padding(width, height)
+    }
+
+    fn reload_config(&mut self) -> Result<(), Error> {
+        let clock = &mut self.clock;
+        let config = Config::parse()?;
+
+        clock.color = config.general.color;
+        clock.interval = Duration::from_millis(config.general.interval);
+        clock.blink = config.general.blink;
+        clock.bold = config.general.bold;
+
+        clock.x_pos = config.position.x;
+        clock.y_pos = config.position.y;
+
+        clock.use_12h = config.date.use_12h;
+        clock.hide_seconds = config.date.hide_seconds;
+
+        if let ClockMode::Time {
+            time_zone,
+            date_format,
+        } = &mut self.clock.mode
+        {
+            *time_zone = TimeZone::from_utc(config.date.utc);
+            *date_format = config.date.fmt;
+        }
+
+        let (width, height) = terminal::size()?;
+        self.refresh_display(width, height)
+    }
+
+    fn render(&self) -> Result<(), Error> {
+        let (width, height) = terminal::size()?;
+
+        if self.clock.is_too_large(width, height) {
+            return Ok(());
+        }
+
+        let mut stdout = io::stdout();
+
+        execute!(stdout, MoveTo(0, self.clock.padding.top))?;
+
+        let lock = stdout.lock();
+        let mut buffered_writer = BufWriter::new(lock);
+
+        self.clock.fmt(&mut buffered_writer)?;
+        buffered_writer.flush()?;
+
+        Ok(())
     }
 }
 
