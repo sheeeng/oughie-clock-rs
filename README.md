@@ -37,7 +37,7 @@ It supports all major platforms and offers several improvements, which include:
 
 ### Using Cargo
 
-To install `clock-rs` globally using Cargo, simply run the following command:
+To install `clock-rs` globally using [Cargo](https://crates.io/crates/clock-rs), simply run the following command:
 
 ```
 $ cargo install clock-rs
@@ -61,9 +61,17 @@ or manually clone from the AUR:
 $ git clone https://aur.archlinux.org/clock-rs-git.git && cd clock-rs-git && makepkg -si
 ```
 
+#### Homebrew
+
+You can install `clock-rs` via [Homebrew](https://formulae.brew.sh/formula/clock-rs):
+
+```
+$ brew install clock-rs
+```
+
 #### NetBSD
 
-A package is available from the official repositories. To install it, simply run:
+A package is available from the official [pkgsrc](https://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc/time/clock-rs/index.html) repositories. To install it, simply run:
 
 ```
 # pkgin install clock-rs

@@ -20,10 +20,12 @@ impl TimeZone {
     pub fn get_time(&self) -> (u32, u32, u32) {
         if let Self::Utc = self {
             let utc = Utc::now();
+
             return (utc.hour(), utc.minute(), utc.second());
         }
 
         let local = Local::now();
+
         (local.hour(), local.minute(), local.second())
     }
 

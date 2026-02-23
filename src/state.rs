@@ -1,11 +1,10 @@
 use std::{
     io::{self, BufWriter, Write},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     time::Duration,
-};
-
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
 };
 
 use clap::Parser;
