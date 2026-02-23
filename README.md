@@ -232,7 +232,7 @@ Here's a list of the available fields inside the `conf.toml` file.
 | `general.bold`            | Use bold text                              | `true` or `false`.                 | `false`      |
 | `position.horizontal`     | Set the position along the horizontal axis | `"start"`, `"center"`, or `"end"`. | `"center"`   |
 | `position.vertical`       | Set the position along the vertical axis   | `"start"`, `"center"`, or `"end"`. | `"center"`   |
-| `date.fmt`                | Specify the date format                    | A string, e.g. `"%A, %B %d, %Y"`.  | `"%d-%m-%Y"` |
+| `date.fmt`                | Specify the date format                    | A [chrono format](https://docs.rs/chrono/latest/chrono/format/strftime/index.html) string, e.g. `"%A, %B %d, %Y"`.  | `"%d-%m-%Y"` |
 | `date.use_12h`            | Use the 12h format                         | `true` or `false`.                 | `false`      |
 | `date.utc`                | Use UTC time                               | `true` or `false`.                 | `false`      |
 | `date.hide_seconds`       | Do not show seconds                        | `true` or `false`.                 | `false`      |
